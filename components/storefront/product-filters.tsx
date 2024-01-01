@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { ProductFilters as ProductFiltersType } from '@/types/product.types'
@@ -59,8 +57,8 @@ export function ProductFilters({ onFilterChange }: ProductFiltersProps) {
             step={10}
           />
           <div className="flex justify-between text-sm">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
+            <span>₦{priceRange[0]}</span>
+            <span>₦{priceRange[1]}</span>
           </div>
         </div>
       </div>

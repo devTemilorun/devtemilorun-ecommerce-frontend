@@ -8,13 +8,18 @@ export function FeaturedProducts() {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['featured-products'],
     queryFn: () => productService.getFeatured(),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   })
 
   if (isLoading) {
     return (
       <section className="py-24">
         <div className="container">
-          <h2 className="mb-12 text-center text-3xl font-bold">Featured Products</h2>
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold">Featured Products</h2>
+            <p className="mt-2 text-muted-foreground">Hand-picked just for you</p>
+          </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-4">
@@ -30,37 +35,43 @@ export function FeaturedProducts() {
   }
 
   if (error) {
-    console.error('Failed to load products:', error)
     return (
       <section className="py-24">
         <div className="container text-center">
-          <p className="text-red-500">Failed to load products. Please try again later.</p>
+          <h2 className="mb-4 text-3xl font-bold">Featured Products</h2>
+          <p className="text-destructive">Failed to load products. Please try again later.</p>
         </div>
       </section>
     )
   }
 
-  if (!products || products.length === 0) {
+  if (!products || !Array.isArray(products) || products.length === 0) {
     return (
       <section className="py-24">
         <div className="container text-center">
-          <p className="text-muted-foreground">No products found.</p>
+          <h2 className="mb-4 text-3xl font-bold">Featured Products</h2>
+          <p className="text-muted-foreground">No featured products available at the moment.</p>
         </div>
       </section>
     )
   }
 
   return (
-    <section className="py-24">
-      <div className="container"> 
+    <section className="py-24 bg-secondary">
+      <div className="container">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold">Featured Products</h2>
           <p className="mt-2 text-muted-foreground">Hand-picked just for you</p>
         </div>
-        
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <div
+              key={product.id}
+              className="rounded-lg border border-border bg-background p-2"
+            >
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
       </div>

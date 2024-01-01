@@ -21,7 +21,6 @@ import {
   Mail
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 
 export default function AdminLayout({
   children,
@@ -58,7 +57,6 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* Mobile Sidebar Toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
@@ -69,7 +67,6 @@ export default function AdminLayout({
         </Button>
       </div>
 
-      {/* Sidebar */}
       <aside className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-background border-r transform transition-transform duration-300 ease-in-out lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -121,7 +118,6 @@ export default function AdminLayout({
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="lg:ml-64 min-h-screen">
         <div className="container py-8">
           {children}

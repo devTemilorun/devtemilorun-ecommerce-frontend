@@ -77,40 +77,36 @@ export default function ProductDetailPage() {
     })
   }
 
-  // Get related products - safely handle undefined
   const relatedProducts = relatedProductsData?.data || []
   
-  // Get category name safely
   const categoryName = product.category?.name || 'Uncategorized'
   
-  // Get images array safely - filter out undefined/null values
-  const productImages = (product.images || []).filter((img): img is string => 
+ const rawImages = typeof product.images === 'string' 
+    ? JSON.parse(product.images) 
+    : (product.images || [])
+
+  const productImages = rawImages.filter((img: any): img is string => 
     img !== null && img !== undefined && img !== ''
   )
   
-  // If no images, use thumbnail if available
   if (productImages.length === 0 && product.thumbnail) {
     productImages.push(product.thumbnail)
   }
 
-  // Calculate discount percentage
   const discountPercentage = product.compare_price && product.compare_price > product.price
     ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
     : null
 
-  // Get rating safely
   const rating = typeof product.rating === 'number' ? product.rating : 0
 
   return (
     <div className="container py-8">
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Product Gallery */}
         <ProductGallery 
           images={productImages} 
           title={product.name} 
         />
 
-        {/* Product Info */}
         <div className="space-y-6">
           <div>
             <div className="text-sm text-muted-foreground">{categoryName}</div>
@@ -130,11 +126,11 @@ export default function ProductDetailPage() {
           <div className="border-t border-b py-6">
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-primary">
-                ${(typeof product.price === 'string' ? parseFloat(product.price) : product.price).toFixed(2)}
+                ₦{(typeof product.price === 'string' ? parseFloat(product.price) : product.price).toFixed(2)}
               </span>
               {product.compare_price && product.compare_price > product.price && (
                 <span className="text-lg text-muted-foreground line-through">
-                  ${(typeof product.compare_price === 'string' ? parseFloat(product.compare_price) : product.compare_price).toFixed(2)}
+                  ₦{(typeof product.compare_price === 'string' ? parseFloat(product.compare_price) : product.compare_price).toFixed(2)}
                 </span>
               )}
               {discountPercentage && (
@@ -189,7 +185,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-16">
           <h2 className="mb-6 text-2xl font-bold">You May Also Like</h2>

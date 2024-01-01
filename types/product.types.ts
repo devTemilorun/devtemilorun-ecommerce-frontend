@@ -12,7 +12,8 @@ export interface Product {
   sku: string
   category_id: number
   category?: Category
-  images: string[] | null
+  images?: string[] | null 
+  image_url?: string | null
   thumbnail?: string | null
   attributes?: Record<string, any> | null
   weight?: number | null

@@ -8,12 +8,10 @@ export function middleware(request: NextRequest) {
   const isAdminPage = request.nextUrl.pathname.startsWith('/admin')
   const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard')
 
-  // Redirect to login if trying to access protected routes without token
   if ((isDashboardPage || isAdminPage) && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect to dashboard if already logged in and trying to access auth pages
   if (isAuthPage && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }

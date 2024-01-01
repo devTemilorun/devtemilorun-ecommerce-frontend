@@ -16,7 +16,7 @@ export function CartItem({ item }: CartItemProps) {
 
   return (
     <div className="flex gap-4 border-b py-4">
-      <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md bg-muted">
         <Image
           src={item.image}
           alt={item.name}
@@ -30,11 +30,11 @@ export function CartItem({ item }: CartItemProps) {
           <div>
             <h3 className="font-semibold">{item.name}</h3>
             <p className="text-sm text-muted-foreground">
-              ${item.price.toFixed(2)} each
+              ₦{item.price.toFixed(2)} each
             </p>
           </div>
           <p className="font-semibold">
-            ${(item.price * item.quantity).toFixed(2)}
+            ₦{(item.price * item.quantity).toFixed(2)}
           </p>
         </div>
         

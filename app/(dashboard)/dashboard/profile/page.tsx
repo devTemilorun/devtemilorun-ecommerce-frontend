@@ -44,7 +44,6 @@ export default function ProfilePage() {
     confirm_password: '',
   })
 
-  // Fetch user activity
   const { data: activitiesData, isLoading: activitiesLoading } = useQuery({
     queryKey: ['user-activity'],
     queryFn: async () => {
@@ -53,7 +52,6 @@ export default function ProfilePage() {
     },
   })
 
-  // Update profile mutation
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await api.put('/user', data)
@@ -79,7 +77,6 @@ export default function ProfilePage() {
     },
   })
 
-  // Avatar upload mutation
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData()
@@ -208,13 +205,12 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Sidebar - Avatar & Stats */}
         <div className="space-y-6">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="relative mx-auto h-24 w-24 cursor-pointer group" onClick={handleAvatarClick}>
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-r from-primary/20 to-primary/10 overflow-hidden">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-r from-primary/20 to-primary/10 overflow-hidden">
                     {user?.avatar ? (
                       <Image
                         src={user.avatar}
@@ -269,7 +265,6 @@ export default function ProfilePage() {
           </Card>
         </div>
 
-        {/* Main Form - Edit Profile */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -425,7 +420,6 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>

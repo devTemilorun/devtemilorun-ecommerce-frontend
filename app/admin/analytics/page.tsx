@@ -2,437 +2,214 @@
 
 import { useEffect, useState } from 'react'
 import { adminService } from '@/services/api/admin.service'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  ShoppingBag, 
-  Users, 
-  Package,
-  Calendar,
-  Download,
-  Filter,
-  Clock,
-  Activity,
-  Eye,
-  ShoppingCart,
-  CreditCard,
-  ArrowUpRight,
-  ArrowDownRight
-} from 'lucide-react'
+import { StatsCards }   from '@/components/dashboard/stats-cards'
+import { RevenueChart } from '@/components/dashboard/revenue-chart'
+import { RecentOrders } from '@/components/dashboard/recent-orders'
+import { TopProducts }  from '@/components/dashboard/top-products'
+import { RefreshCw, BarChart2 } from 'lucide-react'
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ComposedChart,
-  Area,
-  AreaChart
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts'
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4']
+const PIE_COLORS = ['#7C3AED','#0891B2','#059669','#D97706','#E11D48','#9333EA','#F43F5E','#0D9488']
+
+const STATUS_MAP: Record<string, { label: string; color: string }> = {
+  pending_payment: { label: 'Pending',    color: '#D97706' },
+  paid:            { label: 'Paid',       color: '#2563EB' },
+  processing:      { label: 'Processing', color: '#7C3AED' },
+  shipped:         { label: 'Shipped',    color: '#0891B2' },
+  delivered:       { label: 'Delivered',  color: '#059669' },
+  cancelled:       { label: 'Cancelled',  color: '#E11D48' },
+}
+
+function PieTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null
+  const d = payload[0].payload
+  return (
+    <div className="rounded-xl border border-border bg-card p-2.5 shadow-xl text-xs">
+      <p className="font-semibold">{d.name}</p>
+      <p className="text-muted-foreground mt-0.5">
+        Count: <span className="text-foreground font-medium">{d.value}</span>
+      </p>
+      {d.pct && <p className="text-muted-foreground">Share: <span className="font-medium">{d.pct}%</span></p>}
+    </div>
+  )
+}
+
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-muted ${className}`} />
+}
 
 export default function AdminAnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('12m')
-  const [analytics, setAnalytics] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [data, setData]         = useState<any>(null)
+  const [loading, setLoading]   = useState(true)
+  const [lastUpdate, setLast]   = useState(new Date())
 
-  useEffect(() => {
-    fetchAnalytics()
-  }, [timeRange])
-
-  const fetchAnalytics = async () => {
+  const load = async () => {
+    setLoading(true)
     try {
-      const [revenue, products, customers] = await Promise.all([
+      const [dashboard, revenue, customers] = await Promise.all([
+        adminService.getDashboardStats(),
         adminService.getRevenueStats(),
-        adminService.getTopProducts(),
-        adminService.getCustomerStats()
+        adminService.getCustomerStats(),
       ])
-      setAnalytics({ revenue, products, customers })
-    } catch (error) {
-      console.error('Failed to fetch analytics:', error)
+      setData({ ...dashboard, revenue, customers })
+      setLast(new Date())
+    } catch (e) {
+      console.error('Analytics fetch failed:', e)
     } finally {
       setLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="relative">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-primary/20" />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => { load() }, [])
 
-  // Mock comprehensive analytics data
-  const revenueData = [
-    { month: 'Jan', revenue: 45000, profit: 13500, customers: 320, avgOrderValue: 140 },
-    { month: 'Feb', revenue: 52000, profit: 15600, customers: 380, avgOrderValue: 136 },
-    { month: 'Mar', revenue: 48000, profit: 14400, customers: 350, avgOrderValue: 137 },
-    { month: 'Apr', revenue: 61000, profit: 18300, customers: 420, avgOrderValue: 145 },
-    { month: 'May', revenue: 58000, profit: 17400, customers: 400, avgOrderValue: 145 },
-    { month: 'Jun', revenue: 72000, profit: 21600, customers: 480, avgOrderValue: 150 },
-    { month: 'Jul', revenue: 68000, profit: 20400, customers: 460, avgOrderValue: 147 },
-    { month: 'Aug', revenue: 79000, profit: 23700, customers: 520, avgOrderValue: 152 },
-    { month: 'Sep', revenue: 85000, profit: 25500, customers: 560, avgOrderValue: 151 },
-    { month: 'Oct', revenue: 92000, profit: 27600, customers: 600, avgOrderValue: 153 },
-    { month: 'Nov', revenue: 88000, profit: 26400, customers: 580, avgOrderValue: 151 },
-    { month: 'Dec', revenue: 105000, profit: 31500, customers: 680, avgOrderValue: 154 },
+  // ── Derived data ───────────────────────────────────────────────────────────
+  const total = (data?.categories_data ?? []).reduce((s: number, c: any) => s + c.value, 0)
+  const pieData = (data?.categories_data ?? []).map((c: any) => ({
+    ...c,
+    pct: total > 0 ? ((c.value / total) * 100).toFixed(1) : '0',
+  }))
+
+  const statusChart = Object.entries(data?.orders_by_status ?? {}).map(([k, v]) => ({
+    name:  STATUS_MAP[k]?.label ?? k,
+    value: v as number,
+    color: STATUS_MAP[k]?.color ?? '#64748B',
+  }))
+
+  const customerKpis = [
+    { label: 'Total Customers',    value: data?.customers?.total_customers   ?? data?.total_customers  ?? 0 },
+    { label: 'New This Month',     value: data?.customers?.new_customers      ?? 0 },
+    { label: 'Repeat Customers',   value: data?.customers?.repeat_customers   ?? 0 },
+    { label: 'Avg Order Value',    value: `₦${Number(data?.revenue?.average_order_value ?? 0).toFixed(0)}` },
   ]
-
-  const deviceData = [
-    { name: 'Desktop', value: 45, color: '#0088FE' },
-    { name: 'Mobile', value: 40, color: '#00C49F' },
-    { name: 'Tablet', value: 15, color: '#FFBB28' },
-  ]
-
-  const customerSegmentData = [
-    { name: 'New', value: 35, color: '#8884D8' },
-    { name: 'Returning', value: 45, color: '#82CA9D' },
-    { name: 'Loyal', value: 20, color: '#FF6B6B' },
-  ]
-
-  const hourlySales = [
-    { hour: '00', sales: 120 },
-    { hour: '04', sales: 80 },
-    { hour: '08', sales: 350 },
-    { hour: '12', sales: 680 },
-    { hour: '16', sales: 950 },
-    { hour: '20', sales: 780 },
-    { hour: '24', sales: 250 },
-  ]
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="rounded-lg border bg-background p-3 shadow-lg">
-          <p className="mb-2 font-semibold">{label}</p>
-          {payload.map((p: any, idx: number) => (
-            <p key={idx} className="text-sm" style={{ color: p.color }}>
-              {p.name}: {p.name.includes('Revenue') ? '₦' : ''}{p.value.toLocaleString()}
-            </p>
-          ))}
-        </div>
-      )
-    }
-    return null
-  }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-          <p className="text-muted-foreground">
-            Track your store performance and customer insights
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+            <BarChart2 className="h-5 w-5 text-violet-500" /> Analytics
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Real-time store performance from your database
           </p>
         </div>
-        <div className="flex gap-2">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="rounded-md border bg-background px-3 py-2 text-sm"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="3m">Last 3 months</option>
-            <option value="12m">Last 12 months</option>
-          </select>
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+        <button onClick={load}
+          className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted transition-colors">
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          {lastUpdate.toLocaleTimeString()}
+        </button>
+      </div>
+
+      {/* KPI cards */}
+      <StatsCards data={data} loading={loading} />
+
+      {/* Revenue chart */}
+      <RevenueChart data={data?.revenue_by_day ?? []} loading={loading} />
+
+      {/* Middle row */}
+      <div className="grid gap-5 lg:grid-cols-3">
+
+        {/* Category pie */}
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold mb-1">Category Distribution</h2>
+          <p className="text-xs text-muted-foreground mb-3">By product count / sales</p>
+          <div className="h-44">
+            {loading
+              ? <Skeleton className="h-full rounded-2xl" />
+              : pieData.length > 0
+                ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={64}
+                        paddingAngle={3} dataKey="value" strokeWidth={0}>
+                        {pieData.map((_: any, i: number) => (
+                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<PieTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )
+                : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No data</div>
+            }
+          </div>
+          {!loading && pieData.slice(0, 5).map((c: any, i: number) => (
+            <div key={i} className="flex items-center justify-between text-xs mt-1">
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                {c.name}
+              </span>
+              <span className="font-medium">{c.pct}%</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Order status bar */}
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold mb-1">Orders by Status</h2>
+          <p className="text-xs text-muted-foreground mb-3">Current breakdown</p>
+          <div className="h-52">
+            {loading
+              ? <Skeleton className="h-full rounded-2xl" />
+              : statusChart.length > 0
+                ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={statusChart} layout="vertical"
+                      margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                      <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} tickLine={false}
+                        axisLine={false} width={72} />
+                      <Tooltip
+                        cursor={{ fill: 'hsl(var(--muted))' }}
+                        contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))',
+                          background: 'hsl(var(--background))', fontSize: 12 }}
+                      />
+                      <Bar dataKey="value" radius={[0, 6, 6, 0]} maxBarSize={14}>
+                        {statusChart.map((s: any, i: number) => (
+                          <Cell key={i} fill={s.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )
+                : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No orders yet</div>
+            }
+          </div>
+        </div>
+
+        {/* Customer KPIs */}
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold mb-1">Customer Insights</h2>
+          <p className="text-xs text-muted-foreground mb-4">From your database</p>
+          <div className="space-y-3">
+            {customerKpis.map((k, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/40">
+                <span className="text-xs text-muted-foreground">{k.label}</span>
+                {loading
+                  ? <Skeleton className="h-4 w-12" />
+                  : <span className="text-sm font-bold text-foreground">{k.value}</span>
+                }
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₦892,000</div>
-            <div className="flex items-center gap-1 text-sm text-green-600">
-              <TrendingUp className="h-3 w-3" />
-              <span>+18.2% from last month</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₦148</div>
-            <div className="flex items-center gap-1 text-sm text-green-600">
-              <TrendingUp className="h-3 w-3" />
-              <span>+5.2% from last month</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Customer Lifetime Value</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₦1,250</div>
-            <div className="flex items-center gap-1 text-sm text-green-600">
-              <TrendingUp className="h-3 w-3" />
-              <span>+12.3% from last month</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2.4%</div>
-            <div className="flex items-center gap-1 text-sm text-green-600">
-              <TrendingDown className="h-3 w-3" />
-              <span>-0.5% from last month</span>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Top products + recent orders */}
+      <div className="grid gap-5 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <TopProducts products={data?.top_products ?? []} loading={loading} />
+        </div>
+        <div className="lg:col-span-3">
+          <RecentOrders orders={data?.recent_orders ?? []} loading={loading} />
+        </div>
       </div>
 
-      {/* Main Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Revenue & Profit Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue & Profit Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={revenueData}>
-                  <defs>
-                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Area
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#8884d8"
-                    fill="url(#revenueGradient)"
-                    name="Revenue (₦)"
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="profit"
-                    stroke="#82ca9d"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    name="Profit (₦)"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Customer Growth */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Growth</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData}>
-                  <defs>
-                    <linearGradient id="customerGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#FF8042" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#FF8042" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="customers"
-                    stroke="#FF8042"
-                    fill="url(#customerGradient)"
-                    name="New Customers"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Device & Customer Distribution */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Device Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={deviceData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {deviceData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Segmentation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={customerSegmentData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {customerSegmentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Hourly Sales Heatmap */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Hourly Sales Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={hourlySales}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="hour" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="sales" fill="#8884d8">
-                  {hourlySales.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={`hsl(${210 + (entry.sales / 1000) * 100}, 70%, 50%)`}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Key Insights */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-300">Peak Sales Hour</p>
-                <p className="text-2xl font-bold">4 PM - 8 PM</p>
-                <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">40% of daily sales</p>
-              </div>
-              <div className="rounded-full bg-blue-200 p-2 dark:bg-blue-800">
-                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-300">Best Day</p>
-                <p className="text-2xl font-bold">Friday</p>
-                <p className="text-xs text-green-600 dark:text-green-300 mt-1">₦124,000 average</p>
-              </div>
-              <div className="rounded-full bg-green-200 p-2 dark:bg-green-800">
-                <Calendar className="h-4 w-4 text-green-600 dark:text-green-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600 dark:text-purple-300">Top Category</p>
-                <p className="text-2xl font-bold">Electronics</p>
-                <p className="text-xs text-purple-600 dark:text-purple-300 mt-1">35% of sales</p>
-              </div>
-              <div className="rounded-full bg-purple-200 p-2 dark:bg-purple-800">
-                <Package className="h-4 w-4 text-purple-600 dark:text-purple-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }

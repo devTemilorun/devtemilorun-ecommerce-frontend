@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from 'next'
 // @ts-ignore: side-effect import for global CSS
 import "../styles/globals.css";
+// @ts-ignore: side-effect import for global CSS
+import "nprogress/nprogress.css"
 import { Inter, Calistoga } from 'next/font/google'
 import { Providers } from '@/app/providers'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { CommandPalette } from '@/components/layout/command-palette'
+import { TopLoader } from '@/components/layout/top-loader'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const calistoga = Calistoga({ weight: '400', subsets: ['latin'], variable: '--font-calistoga' })
@@ -35,6 +38,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${calistoga.variable} font-sans`}>
         <Providers>
+          <TopLoader />
           <div className="relative flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>

@@ -14,7 +14,6 @@ export default function OrderSuccessPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Clear cart when order is successful
     clearCart()
   }, [clearCart])
 

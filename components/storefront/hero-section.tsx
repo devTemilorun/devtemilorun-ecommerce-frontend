@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-background py-24">
+    <section className="relative overflow-hidden bg-linear-to-br from-primary/5 via-background to-background py-24">
       <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]" />
       
       <div className="container relative">
@@ -17,7 +17,7 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
           >
             <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              <span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-primary to-primary/50 bg-clip-text text-transparent">
                 Modern E-commerce
               </span>
               <br />
@@ -39,7 +39,7 @@ export function HeroSection() {
         </div>
       </div>
       
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-background to-transparent" />
     </section>
   )
 }

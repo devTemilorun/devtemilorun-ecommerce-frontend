@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Button } from '@/components/ui/button'
 import { X, Upload, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 
@@ -18,7 +17,6 @@ export function ImageUpload({ images, onImagesChange, multiple = true }: ImageUp
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setUploading(true)
     
-    // Simulate upload (replace with actual API call)
     setTimeout(() => {
       const newImages = acceptedFiles.map(file => URL.createObjectURL(file))
       const updatedImages = multiple ? [...images, ...newImages] : newImages

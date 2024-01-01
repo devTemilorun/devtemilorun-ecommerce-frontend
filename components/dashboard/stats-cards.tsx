@@ -1,62 +1,79 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DollarSign, ShoppingBag, Users, Package } from 'lucide-react'
+import { DollarSign, ShoppingBag, Users, Package, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 
-export function StatsCards() {
-  // In production, fetch these from API
-  const stats = {
-    revenue: 12450,
-    orders: 342,
-    customers: 1234,
-    products: 56,
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-muted ${className}`} />
+}
+
+interface StatsCardsProps {
+  data: any
+  loading: boolean
+}
+
+const CARDS = [
+  { key: 'revenue',   title: 'Total Revenue',   growthKey: 'revenue_growth',   icon: DollarSign, accent: '#7C3AED', format: (v: any) => `₦${Number(v||0).toLocaleString()}` },
+  { key: 'orders',    title: 'Total Orders',    growthKey: 'orders_growth',    icon: ShoppingBag, accent: '#0891B2', format: (v: any) => Number(v||0).toLocaleString() },
+  { key: 'customers', title: 'Customers',       growthKey: 'customers_growth', icon: Users,       accent: '#059669', format: (v: any) => Number(v||0).toLocaleString() },
+  { key: 'products',  title: 'Products',        growthKey: 'products_growth',  icon: Package,     accent: '#D97706', format: (v: any) => Number(v||0).toLocaleString() },
+]
+
+export function StatsCards({ data, loading }: StatsCardsProps) {
+  const values = {
+    revenue:   data?.total_revenue,
+    orders:    data?.total_orders,
+    customers: data?.total_customers,
+    products:  data?.total_products,
+  }
+  const growths = {
+    revenue_growth:   data?.revenue_growth   ?? '+0%',
+    orders_growth:    data?.orders_growth    ?? '+0%',
+    customers_growth: data?.customers_growth ?? '+0%',
+    products_growth:  data?.products_growth  ?? '+0%',
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">${stats.revenue.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-          <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.orders}</div>
-          <p className="text-xs text-muted-foreground">+12 from last week</p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.customers}</div>
-          <p className="text-xs text-muted-foreground">+180 new this month</p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Products</CardTitle>
-          <Package className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.products}</div>
-          <p className="text-xs text-muted-foreground">+12 new this month</p>
-        </CardContent>
-      </Card>
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {CARDS.map(({ key, title, growthKey, icon: Icon, accent, format }) => {
+        const growth = growths[growthKey as keyof typeof growths]
+        const isUp   = String(growth).startsWith('+')
+        return (
+          <div key={key}
+            className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-8"
+              style={{ background: accent }} />
+            <div className="flex items-start justify-between">
+              <div className="rounded-xl p-2.5" style={{ background: `${accent}18` }}>
+                <Icon className="h-5 w-5" style={{ color: accent }} />
+              </div>
+              {!loading && (
+                <span className={`flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  isUp
+                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'
+                }`}>
+                  {isUp
+                    ? <ArrowUpRight className="h-3 w-3" />
+                    : <ArrowDownRight className="h-3 w-3" />}
+                  {growth}
+                </span>
+              )}
+            </div>
+            <div className="mt-4">
+              {loading
+                ? <><Skeleton className="h-7 w-28 mb-1" /><Skeleton className="h-3 w-20" /></>
+                : <>
+                    <p className="text-2xl font-bold tracking-tight text-foreground">
+                      {format(values[key as keyof typeof values])}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{title}</p>
+                  </>
+              }
+            </div>
+            <div className="absolute inset-x-0 bottom-0 h-0.5 rounded-b-2xl" style={{ background: accent }} />
+          </div>
+        )
+      })}
     </div>
   )
 }

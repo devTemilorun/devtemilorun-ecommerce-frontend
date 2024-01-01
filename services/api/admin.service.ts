@@ -16,6 +16,19 @@ export interface Product {
   updated_at: string
 }
 
+export interface OrderAddress {
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  address_line1: string
+  address_line2?: string
+  city: string
+  state: string
+  postal_code: string
+  country: string
+}
+
 export interface Category {
   id: number
   name: string
@@ -24,8 +37,45 @@ export interface Category {
   is_active: boolean
 }
 
+
+export interface Order {
+  id: number
+  order_number: string
+  status: string
+  subtotal: number
+  tax: number
+  shipping_cost: number
+  discount: number
+  total: number
+  shipping_address: OrderAddress | string | null
+  billing_address?: OrderAddress | string | null
+  payment_method: string
+  paid_at: string | null
+  shipped_at: string | null
+  delivered_at: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  user: {
+    id: number
+    name: string
+    email: string
+  }
+  items: Array<{
+    id: number
+    product_id: number
+    product_name: string
+    product_sku: string
+    unit_price: number
+    quantity: number
+    total: number
+  }>
+}
+
+
+
 class AdminService {
-  // Dashboard Stats - REAL DATA FROM DATABASE
+  // Dashboard Stats
   async getDashboardStats() {
     const response = await api.get('/admin/analytics/dashboard')
     return response.data
@@ -57,9 +107,9 @@ class AdminService {
     return response.data
   }
 
-  async toggleFeatured(id: number) {
-    const response = await api.post(`/admin/products/${id}/featured`)
-    return response.data
+  async toggleFeatured(id: number): Promise<any> {
+    const response = await api.patch(`/admin/products/${id}/featured`)
+    return response
   }
 
   // Categories
@@ -89,8 +139,8 @@ class AdminService {
     return response.data
   }
 
-  async getOrder(id: number) {
-    const response = await api.get(`/admin/orders/${id}`)
+  async getOrder(id: number): Promise<Order> {
+    const response = await api.get<Order>(`/admin/orders/${id}`)
     return response.data
   }
 
@@ -115,7 +165,7 @@ class AdminService {
     return response.data
   }
 
-  // Analytics - REAL DATA FROM DATABASE
+  // Analytics 
   async getRevenueStats() {
     const response = await api.get('/admin/analytics/revenue')
     return response.data

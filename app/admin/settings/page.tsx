@@ -20,7 +20,7 @@ export default function AdminSettingsPage() {
       email: 'contact@modernstore.com',
       phone: '+1 (555) 123-4567',
       address: '123 Commerce Street, New York, NY 10001',
-      currency: 'USD',
+      currency: 'NGN',
       timezone: 'America/New_York',
     },
     payment: {
@@ -118,7 +118,6 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="tax">Tax</TabsTrigger>
         </TabsList>
 
-        {/* Store Settings */}
         <TabsContent value="store">
           <Card>
             <CardHeader>
@@ -201,7 +200,6 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Payment Settings */}
         <TabsContent value="payment">
           <Card>
             <CardHeader>
@@ -259,7 +257,6 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Shipping Settings */}
         <TabsContent value="shipping">
           <Card>
             <CardHeader>
@@ -274,7 +271,7 @@ export default function AdminSettingsPage() {
             <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="free_shipping">Free Shipping Threshold ($)</Label>
+                  <Label htmlFor="free_shipping">Free Shipping Threshold (₦)</Label>
                   <Input
                     id="free_shipping"
                     type="number"
@@ -286,7 +283,7 @@ export default function AdminSettingsPage() {
                   </p>
                 </div>
                 <div>
-                  <Label htmlFor="domestic_rate">Domestic Shipping Rate ($)</Label>
+                  <Label htmlFor="domestic_rate">Domestic Shipping Rate (₦)</Label>
                   <Input
                     id="domestic_rate"
                     type="number"
@@ -295,7 +292,7 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="international_rate">International Shipping Rate ($)</Label>
+                  <Label htmlFor="international_rate">International Shipping Rate (₦)</Label>
                   <Input
                     id="international_rate"
                     type="number"
@@ -308,7 +305,6 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Email Settings */}
         <TabsContent value="email">
           <Card>
             <CardHeader>
@@ -372,7 +368,6 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Tax Settings */}
         <TabsContent value="tax">
           <Card>
             <CardHeader>

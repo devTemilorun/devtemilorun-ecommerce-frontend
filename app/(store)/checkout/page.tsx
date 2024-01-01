@@ -37,7 +37,6 @@ export default function CheckoutPage() {
       return
     }
     
-    // Pre-fill form with user data if available
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -67,7 +66,6 @@ export default function CheckoutPage() {
     setError('')
 
     try {
-      // Validate form
       for (const [key, value] of Object.entries(formData)) {
         if (!value) {
           throw new Error(`Please fill in ${key.replace('_', ' ')}`)
@@ -86,6 +84,14 @@ export default function CheckoutPage() {
         })),
         address: formData,
       }
+
+      console.log('ORDER PAYLOAD:', JSON.stringify({
+        items: items.map((item) => ({
+          product_id: item.productId,
+          quantity: item.quantity,
+        })),
+        address: formData,
+      }, null, 2))
 
       const orderResponse = await orderService.createOrder(orderData)
 
@@ -119,7 +125,6 @@ export default function CheckoutPage() {
       <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Shipping Form */}
         <Card>
           <CardHeader>
             <CardTitle>Shipping Information</CardTitle>
@@ -243,7 +248,6 @@ export default function CheckoutPage() {
           </CardContent>
         </Card>
 
-        {/* Order Summary */}
         <Card>
           <CardHeader>
             <CardTitle>Order Summary</CardTitle>

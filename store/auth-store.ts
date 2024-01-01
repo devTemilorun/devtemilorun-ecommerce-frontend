@@ -75,10 +75,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: unknown) {
           set({ isLoading: false })
           
-          // Type guard for axios error
           const axiosError = error as AxiosErrorResponse
           
-          // Handle unverified email
           if (axiosError.response?.status === 403 && axiosError.response?.data?.requires_verification) {
             throw new Error('Please verify your email before logging in')
           }
@@ -130,7 +128,6 @@ export const useAuthStore = create<AuthState>()(
           
           set({ isLoading: false })
           
-          // Throw with more specific error message
           if (error.message === 'Network Error') {
             throw new Error('Network Error: Unable to connect to the server. Please ensure the backend is running on port 8000.')
           }
@@ -183,16 +180,12 @@ export const useAuthStore = create<AuthState>()(
           console.error('Fetch user error:', error)
           const axiosError = error as AxiosErrorResponse
           
-          // If unauthorized, clear auth state
           if (axiosError.response?.status === 401) {
             console.log('Unauthorized in fetchUser, clearing auth state')
-            // Clear the token
             delete api.defaults.headers.common['Authorization']
             
-            // Clear store
             set({ user: null, token: null })
             
-            // Clear cookies
             if (typeof document !== 'undefined') {
               document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
               document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'

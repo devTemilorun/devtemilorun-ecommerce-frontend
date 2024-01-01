@@ -3,272 +3,249 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
 import { orderService } from '@/services/api/order.service'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft, Package, CheckCircle, Clock, XCircle, Truck, CreditCard, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, AlertCircle, Info } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
-const statusColors: Record<string, string> = {
-  pending_payment: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  paid: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  processing: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-  shipped: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-  delivered: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  pending_payment: { label: 'Pending Payment', color: '#D97706', bg: '#FEF3C7' },
+  paid:            { label: 'Paid',            color: '#2563EB', bg: '#DBEAFE' },
+  processing:      { label: 'Processing',      color: '#7C3AED', bg: '#EDE9FE' },
+  shipped:         { label: 'Shipped',         color: '#0891B2', bg: '#CFFAFE' },
+  delivered:       { label: 'Delivered',       color: '#059669', bg: '#D1FAE5' },
+  cancelled:       { label: 'Cancelled',       color: '#E11D48', bg: '#FFE4E6' },
 }
 
-const statusSteps = [
-  { status: 'pending_payment', label: 'Order Placed', description: 'Your order has been received' },
-  { status: 'paid', label: 'Payment Confirmed', description: 'Payment has been verified' },
-  { status: 'processing', label: 'Processing', description: 'Your order is being prepared' },
-  { status: 'shipped', label: 'Shipped', description: 'Your order is on the way' },
-  { status: 'delivered', label: 'Delivered', description: 'Order completed successfully' },
+const STEPS = [
+  { key: 'pending_payment', label: 'Order Placed',       icon: Package,    desc: 'We received your order' },
+  { key: 'paid',            label: 'Payment Confirmed',  icon: CreditCard, desc: 'Payment verified successfully' },
+  { key: 'processing',      label: 'Processing',         icon: RefreshCw,  desc: 'Order is being prepared' },
+  { key: 'shipped',         label: 'Shipped',            icon: Truck,      desc: 'Order is on its way' },
+  { key: 'delivered',       label: 'Delivered',          icon: CheckCircle,desc: 'Order completed' },
 ]
 
-export default function UserOrderDetailPage() {
-  const params = useParams()
+const fmtMoney = (n: number) =>
+  `₦${Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
+
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-muted ${className}`} />
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_MAP[status] ?? { label: status, color: '#64748B', bg: '#F1F5F9' }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+      style={{ color: cfg.color, background: cfg.bg }}>
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: cfg.color }} />
+      {cfg.label}
+    </span>
+  )
+}
+
+export default function OrderDetailPage() {
+  const { id } = useParams()
+
   const { data: order, isLoading } = useQuery({
-    queryKey: ['order', params.id],
-    queryFn: () => orderService.getOrder(Number(params.id)),
+    queryKey: ['order', id],
+    queryFn: () => orderService.getOrder(Number(id)),
+    staleTime: 30_000,
   })
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="space-y-5">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Skeleton className="lg:col-span-2 h-56 rounded-2xl" />
+          <Skeleton className="h-56 rounded-2xl" />
+        </div>
       </div>
     )
   }
 
   if (!order) {
-    return <div>Order not found</div>
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <Package className="h-12 w-12 text-muted-foreground mb-3" />
+        <h3 className="font-semibold">Order not found</h3>
+        <Button asChild className="mt-4" variant="outline" size="sm">
+          <Link href="/dashboard/orders">← Back to Orders</Link>
+        </Button>
+      </div>
+    )
   }
 
-  const currentStepIndex = statusSteps.findIndex(step => step.status === order.status)
   const isCancelled = order.status === 'cancelled'
+  const currentIdx  = STEPS.findIndex(s => s.key === order.status)
+  const addr        = order.shipping_address
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard/orders">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Orders
-          </Link>
-        </Button>
+    <div className="space-y-5">
+
+      <div className="flex items-start gap-3">
+        <Link href="/dashboard/orders">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full mt-0.5">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
         <div>
-          <h1 className="text-3xl font-bold">Order #{order.order_number}</h1>
-          <p className="text-muted-foreground">
-            Placed on {new Date(order.created_at).toLocaleDateString()}
+          <h1 className="text-lg font-bold tracking-tight">{order.order_number}</h1>
+          <p className="text-xs text-muted-foreground">
+            Placed {new Date(order.created_at).toLocaleDateString('en', {
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+            })}
           </p>
         </div>
+        <div className="ml-auto">
+          <StatusBadge status={order.status} />
+        </div>
       </div>
 
-      {/* Status Info Banner */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-blue-900 dark:text-blue-100">Order Tracking Information</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                Your order status will be updated automatically as it progresses. 
-                You will receive email notifications at each stage. If you have any questions, 
-                please contact our support team.
-              </p>
-            </div>
+      {isCancelled && (
+        <div className="flex items-start gap-3 rounded-2xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 px-5 py-4">
+          <XCircle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-rose-900 dark:text-rose-100">Order Cancelled</p>
+            <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
+              This order has been cancelled. Contact support if you think this is a mistake.
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* Status Timeline */}
       {!isCancelled && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <div className="absolute left-6 top-0 h-full w-0.5 bg-muted" />
-              <div className="space-y-8">
-                {statusSteps.map((step, index) => {
-                  const isCompleted = index <= currentStepIndex
-                  const isCurrent = index === currentStepIndex
-                  const Icon = isCompleted ? CheckCircle : Clock
-                  
-                  return (
-                    <div key={step.status} className="relative flex gap-4">
-                      <div className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full ${
-                        isCompleted 
-                          ? 'bg-green-100 dark:bg-green-900' 
-                          : 'bg-muted'
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground mb-5">Order Progress</h2>
+          <div className="relative">
+            <div className="absolute left-5 top-5 bottom-5 w-px bg-border" />
+
+            <div className="space-y-6">
+              {STEPS.map((step, i) => {
+                const done    = i <= currentIdx
+                const current = i === currentIdx
+                const Icon    = step.icon
+                return (
+                  <div key={step.key} className="relative flex items-start gap-4">
+                    <div className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center
+                      rounded-full border-2 transition-all ${
+                        done
+                          ? 'border-violet-500 bg-violet-500'
+                          : 'border-border bg-card'
                       }`}>
-                        <Icon className={`h-5 w-5 ${
-                          isCompleted 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : 'text-muted-foreground'
-                        }`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className={`font-semibold ${isCurrent ? 'text-primary' : ''}`}>
-                            {step.label}
-                          </h4>
-                          {isCurrent && (
-                            <Badge variant="default" className="text-xs">
-                              Current
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {step.description}
+                      <Icon className={`h-4 w-4 ${done ? 'text-white' : 'text-muted-foreground'}`} />
+                    </div>
+
+                    <div className="pt-1.5">
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm font-semibold ${done ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {step.label}
                         </p>
-                        {isCurrent && (
-                          <p className="text-xs text-primary mt-2">
-                            We're working on your order. You'll receive updates shortly.
-                          </p>
+                        {current && (
+                          <span className="rounded-full bg-violet-100 dark:bg-violet-900/40 px-2 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-400">
+                            Current
+                          </span>
                         )}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">{step.desc}</p>
                     </div>
-                  )
-                })}
-              </div>
+                  </div>
+                )
+              })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
-      {/* Cancelled Order Message */}
-      {isCancelled && (
-        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              <div>
-                <h4 className="font-semibold text-red-900 dark:text-red-100">Order Cancelled</h4>
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  This order has been cancelled. If you believe this is an error, please contact support.
+      <div className="grid gap-4 lg:grid-cols-3">
+
+        <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-semibold">Order Items</h2>
+          </div>
+          <div className="divide-y divide-border">
+            {order.items?.map((item: any) => (
+              <div key={item.id} className="flex items-center justify-between px-5 py-3.5 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{item.product_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.quantity} × {fmtMoney(item.unit_price)}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm font-semibold text-foreground tabular-nums shrink-0">
+                  {fmtMoney(item.total)}
                 </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            ))}
+          </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Order Items */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {order.items?.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between border-b pb-4 last:border-0">
-                    <div>
-                      <p className="font-medium">{item.product_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Qty: {item.quantity} × ₦{item.unit_price}
-                      </p>
-                    </div>
-                    <p className="font-semibold">₦{item.total}</p>
-                  </div>
-                ))}
+          <div className="border-t border-border px-5 py-4 space-y-2">
+            {[
+              { label: 'Subtotal',  value: order.subtotal },
+              { label: 'Shipping',  value: order.shipping_cost },
+              { label: 'Tax (10%)', value: order.tax },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between text-xs text-muted-foreground">
+                <span>{label}</span>
+                <span>{fmtMoney(value)}</span>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+            <div className="flex justify-between font-bold text-sm pt-2 border-t border-border">
+              <span>Total</span>
+              <span className="text-violet-600 dark:text-violet-400">{fmtMoney(order.total)}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Order Summary */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>₦{order.subtotal}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Shipping</span>
-                <span>₦{order.shipping_cost}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tax</span>
-                <span>₦{order.tax}</span>
-              </div>
-              <div className="flex justify-between border-t pt-2 font-bold">
-                <span>Total</span>
-                <span>₦{order.total}</span>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="space-y-4">
 
-          {/* Status Badge */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Current Status</span>
-                <Badge className={statusColors[order.status]}>
-                  {order.status?.replace('_', ' ')}
-                </Badge>
+          {addr && (
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-foreground mb-3">Shipping Address</h2>
+              <div className="space-y-0.5 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground text-sm">
+                  {addr.first_name} {addr.last_name}
+                </p>
+                <p>{addr.address_line1}</p>
+                <p>{addr.city}, {addr.state} {addr.postal_code}</p>
+                <p>{addr.country}</p>
+                <p className="pt-2">{addr.phone}</p>
+                <p>{addr.email}</p>
               </div>
-              {order.status === 'pending_payment' && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  ⚡ Complete your payment to confirm your order
-                </p>
-              )}
-              {order.status === 'paid' && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  📦 Payment confirmed! We're preparing your order.
-                </p>
-              )}
-              {order.status === 'processing' && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  🔄 Your order is being packed and will be shipped soon.
-                </p>
-              )}
-              {order.status === 'shipped' && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  🚚 Your order is on its way! Tracking details will be available soon.
-                </p>
-              )}
-              {order.status === 'delivered' && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  ✅ Order completed! Thank you for shopping with us.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Shipping Address */}
-          {order.shipping_address && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1 text-sm">
-                  <p>{order.shipping_address.first_name} {order.shipping_address.last_name}</p>
-                  <p>{order.shipping_address.address_line1}</p>
-                  <p>{order.shipping_address.city}, {order.shipping_address.state}</p>
-                  <p>{order.shipping_address.postal_code}</p>
-                  <p>{order.shipping_address.country}</p>
-                  <p className="pt-2">{order.shipping_address.phone}</p>
-                  <p>{order.shipping_address.email}</p>
-                </div>
-              </CardContent>
-            </Card>
+            </div>
           )}
+
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-foreground mb-2">What's next?</h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {order.status === 'pending_payment' && 'Complete your payment to confirm your order and begin processing.'}
+              {order.status === 'paid'            && 'Payment confirmed! We\'re packing your order and will ship it soon.'}
+              {order.status === 'processing'      && 'Your order is being carefully packed and will be shipped very soon.'}
+              {order.status === 'shipped'         && 'Your order is on its way! You\'ll receive it in the next few days.'}
+              {order.status === 'delivered'       && 'Your order was delivered. We hope you love it! Thank you for shopping with us.'}
+              {order.status === 'cancelled'       && 'This order was cancelled. Need help? Contact our support team.'}
+            </p>
+            {order.status === 'delivered' && (
+              <Link href="/shop">
+                <Button size="sm" className="w-full mt-3 text-xs">Shop Again</Button>
+              </Link>
+            )}
+            {order.status === 'pending_payment' && (
+              <Link href="/shop">
+                <Button size="sm" variant="outline" className="w-full mt-3 text-xs">Need Help?</Button>
+              </Link>
+            )}
+          </div>
+
         </div>
       </div>
+
     </div>
   )
 }

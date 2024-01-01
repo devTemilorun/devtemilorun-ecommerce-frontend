@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useCartStore } from '@/store/cart-store'
 import Image from 'next/image'
 import { useState } from 'react'
+import { parseProductImages } from '@/lib/parse-images'
 
 interface ProductCardProps {
   product: Product
@@ -17,6 +18,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const [imgError, setImgError] = useState(false)
   const addItem = useCartStore((state) => state.addItem)
 
+  const images = parseProductImages(product.images)
+  const imageUrl = images[0] || null
+
   const handleAddToCart = () => {
     const cartItem = {
       id: product.id,
@@ -24,15 +28,12 @@ export function ProductCard({ product }: ProductCardProps) {
       title: product.name,
       name: product.name,
       price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
-      thumbnail: product.images?.[0] || '',
+      thumbnail: imageUrl || '',
       stock: product.stock,
       description: product.description
     }
     addItem(cartItem as any)
   }
-
-  // Only use image if it exists and is not empty
-  const imageUrl = product.images?.[0] && product.images[0].trim() !== '' ? product.images[0] : null
 
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
@@ -45,6 +46,7 @@ export function ProductCard({ product }: ProductCardProps) {
               fill
               className="object-cover transition-transform group-hover:scale-105"
               onError={() => setImgError(true)}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center bg-muted">
@@ -62,7 +64,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </Link>
         <div className="mb-3 flex items-center justify-between">
           <span className="text-lg font-bold text-primary">
-            ${(typeof product.price === 'string' ? parseFloat(product.price) : product.price).toFixed(2)}
+            ₦{(typeof product.price === 'string' ? parseFloat(product.price) : product.price).toFixed(2)}
           </span>
           {product.rating && product.rating > 0 && (
             <span className="flex items-center text-sm">
@@ -71,10 +73,10 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
         </div>
-        <Button 
-          onClick={handleAddToCart} 
-          className="w-full" 
-          size="sm" 
+        <Button
+          onClick={handleAddToCart}
+          className="w-full"
+          size="sm"
           disabled={product.stock === 0}
         >
           <ShoppingCart className="mr-2 h-4 w-4" />

@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { useAuthStore } from '@/store/auth-store'
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle, ChevronRight,  Heart } from 'lucide-react'
+import Link from 'next/link'
 import api from '@/lib/axios'
 
 export default function ContactPage() {
@@ -46,7 +47,6 @@ export default function ContactPage() {
           title: 'Message Sent!',
           description: response.data.message,
         })
-        // Reset form after 3 seconds
         setTimeout(() => {
           setSubmitted(false)
           setFormData({
@@ -70,7 +70,6 @@ export default function ContactPage() {
     }
   }
 
-  // Auto-fill user data if logged in
   useState(() => {
     if (user) {
       setFormData(prev => ({
@@ -86,22 +85,22 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: 'Email Us',
-      details: 'support@modernstore.com',
+      details: 'olawuniisrael2020@gmail.com',
       description: 'We\'ll respond within 24 hours',
-      action: 'mailto:support@modernstore.com',
+      action: 'mailto:olawuniisrael2020@gmail.com',
     },
     {
       icon: Phone,
       title: 'Call Us',
-      details: '+1 (555) 123-4567',
-      description: 'Mon-Fri, 9am-6pm EST',
-      action: 'tel:+15551234567',
+      details: '+234 7031225674',
+      description: 'Mon-Fri, 9am-6pm GMT',
+      action: 'tel:+234 7031225674',
     },
     {
       icon: MapPin,
       title: 'Visit Us',
       details: '123 Commerce Street',
-      description: 'New York, NY 10001',
+      description: ' Nigeria, Earth',
       action: 'https://maps.google.com',
     },
     {
@@ -114,8 +113,44 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary/10 to-primary/5 py-16">
+      <section className="relative overflow-hidden bg-linear-to-br from-primary/20 via-primary/5 to-background py-24">
+        <div className="absolute inset-0 bg-grid-white/10 mask-[radial-gradient(ellipse_at_center,white,transparent)]" />
+        <div className="container relative">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-6 inline-flex items-center rounded-full bg-primary/10 px-4 py-2">
+              <Heart className="mr-2 h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Built with passion</span>
+            </div>
+            <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+              Crafting the Future
+              <span className="block bg-linear-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+                of E-commerce
+              </span>
+            </h1>
+            <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
+              We're on a mission to create the most seamless, enjoyable, and trustworthy
+              shopping experience for millions of customers worldwide.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+              <Button size="lg" asChild>
+                <Link href="/shop">
+                  Start Shopping
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/about">
+                  About Us
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      <section className="bg-linear-to-r from-primary/10 to-primary/5 py-16">
         <div className="container text-center">
           <h1 className="mb-4 text-4xl font-bold">Contact Us</h1>
           <p className="mx-auto max-w-2xl text-muted-foreground">
@@ -124,7 +159,6 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact Info Cards */}
       <section className="py-12">
         <div className="container">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -146,11 +180,9 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact Form */}
       <section className="py-12">
         <div className="container">
           <div className="grid gap-12 lg:grid-cols-2">
-            {/* Contact Form */}
             <Card>
               <CardHeader>
                 <CardTitle>Send us a message</CardTitle>
@@ -249,7 +281,6 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
-            {/* FAQ Section */}
             <div className="space-y-6">
               <Card>
                 <CardHeader>

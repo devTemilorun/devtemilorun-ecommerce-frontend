@@ -32,7 +32,7 @@ export default function AboutPage() {
     {
       icon: Truck,
       title: 'Free Express Shipping',
-      description: 'On all orders over $100. Delivery within 2-3 business days.',
+      description: 'On all orders over ₦100. Delivery within 2-3 business days.',
       color: 'blue',
     },
     {
@@ -69,25 +69,25 @@ export default function AboutPage() {
 
   const team = [
     {
-      name: 'Sarah Johnson',
+      name: 'Olawuni Israel',
       role: 'CEO & Founder',
       image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
       bio: 'Former Amazon executive with 15+ years in e-commerce',
     },
     {
-      name: 'Michael Chen',
+      name: 'Olawuni Israel',
       role: 'CTO',
       image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
       bio: 'Tech innovator passionate about seamless shopping experiences',
     },
     {
-      name: 'Emily Rodriguez',
+      name: 'Olawuni Israel',
       role: 'Head of Design',
       image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
       bio: 'Award-winning designer focused on user-centric experiences',
     },
     {
-      name: 'David Kim',
+      name: 'Olawuni Israel',
       role: 'Customer Success',
       image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
       bio: 'Dedicated to making every customer smile',
@@ -100,12 +100,13 @@ export default function AboutPage() {
     { year: '2025', title: 'Global Expansion', description: 'Launched in 30+ countries across 3 continents' },
     { year: '2025', title: 'Industry Award', description: 'Recognized as Best E-commerce Platform' },
   ]
+      
+
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section with Parallax Effect */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background py-24">
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]" />
+      <section className="relative overflow-hidden bg-linear-to-br from-primary/20 via-primary/5 to-background py-24">
+        <div className="absolute inset-0 bg-grid-white/10 mask-[radial-gradient(ellipse_at_center,white,transparent)]" />
         <div className="container relative">
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-6 inline-flex items-center rounded-full bg-primary/10 px-4 py-2">
@@ -114,7 +115,7 @@ export default function AboutPage() {
             </div>
             <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
               Crafting the Future
-              <span className="block bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-primary to-primary/50 bg-clip-text text-transparent">
                 of E-commerce
               </span>
             </h1>
@@ -139,7 +140,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="border-y bg-muted/30 py-16">
         <div className="container">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -158,7 +158,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Our Story */}
       <section className="py-24">
         <div className="container">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
@@ -242,7 +241,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Features Grid */}
       <section className="bg-muted/30 py-24">
         <div className="container">
           <div className="mb-12 text-center">
@@ -274,7 +272,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline Section */}
       <section className="py-24">
         <div className="container">
           <div className="mb-12 text-center">
@@ -306,7 +303,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team Section */}
       <section className="bg-muted/30 py-24">
         <div className="container">
           <div className="mb-12 text-center">
@@ -343,10 +339,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24">
         <div className="container">
-          <Card className="relative overflow-hidden bg-gradient-to-r from-primary/10 to-primary/5">
+          <Card className="relative overflow-hidden bg-linear-to-r from-primary/10 to-primary/5">
             <CardContent className="relative p-12 text-center">
               <h2 className="mb-4 text-3xl font-bold">Ready to Start Your Journey?</h2>
               <p className="mx-auto mb-8 max-w-2xl text-muted-foreground">

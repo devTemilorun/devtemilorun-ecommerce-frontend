@@ -172,7 +172,6 @@ export default function EditProductPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
@@ -222,7 +221,7 @@ export default function EditProductPage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="price">Price * ($)</Label>
+                    <Label htmlFor="price">Price * (₦)</Label>
                     <Input
                       id="price"
                       name="price"
@@ -234,7 +233,7 @@ export default function EditProductPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="compare_price">Compare at Price ($)</Label>
+                    <Label htmlFor="compare_price">Compare at Price (₦)</Label>
                     <Input
                       id="compare_price"
                       name="compare_price"
@@ -270,7 +269,6 @@ export default function EditProductPage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
