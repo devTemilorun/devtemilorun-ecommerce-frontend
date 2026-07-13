@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Product } from '@/types/product.types'
+import { parseProductImages } from '@/lib/parse-images'
 
 export interface CartItem {
   id: number
@@ -10,7 +11,6 @@ export interface CartItem {
   quantity: number
   image: string
   stock: number
-
 }
 
 interface CartState {
@@ -35,13 +35,17 @@ export const useCartStore = create<CartState>()(
         if (existingItem) {
           existingItem.quantity += quantity
         } else {
+          const images = parseProductImages((product as any).images)
+          const fallbackThumbnail = (product as any).thumbnail
+          const safeImage = images[0] || (typeof fallbackThumbnail === 'string' ? fallbackThumbnail : '')
+
           items.push({
             id: Date.now(),
             productId: product.id,
             name: product.name,
             price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
             quantity,
-            image: product.images?.[0] || product.thumbnail || '',
+            image: safeImage,
             stock: product.stock,
           })
         }
