@@ -1,61 +1,41 @@
-
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth-store'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
-console.log('API_URL configured as:', API_URL)
+console.log('API URL:', API_URL)
 
-export const api = axios.create({
-  baseURL: `${API_URL}/api`,
+const api = axios.create({
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
   },
-  withCredentials: true, // Important for cookies/sessions
-  withXSRFToken: true,   // Important for CSRF
+  timeout: 10000,
+  withCredentials: false,
 })
 
-// CSRF token handling
-let csrfPromise: Promise<void> | null = null
+let isRefreshing = false
+let failedQueue: Array<{ resolve: (value: string) => void; reject: (reason?: any) => void }> = []
 
-const fetchCsrfCookie = async () => {
-  if (csrfPromise) return csrfPromise
-  
-  csrfPromise = (async () => {
-    try {
-      await axios.get(`${API_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-      })
-    } catch (error) {
-      console.error('Failed to fetch CSRF cookie:', error)
-    } finally {
-      csrfPromise = null
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token!)
     }
-  })()
-  
-  return csrfPromise
+  })
+  failedQueue = []
 }
 
-// Request interceptor to add token and ensure CSRF
+// Request interceptor
 api.interceptors.request.use(
-  async (config) => {
-    // Get token from store
+  (config) => {
     const token = useAuthStore.getState().token
-    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
-    // For POST, PUT, DELETE requests, ensure CSRF cookie exists
-    if (['post', 'put', 'patch', 'delete'].includes(config.method || '')) {
-      await fetchCsrfCookie()
-    }
-    
-    const fullUrl = config.baseURL ? config.baseURL + (config.url || '') : config.url || 'unknown'
-    console.log('Making request to:', fullUrl, 'Token exists:', !!token)
-    
     return config
   },
   (error) => {
@@ -64,20 +44,98 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor for error handling
+// Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response received:', response.status, response.config.url)
+    return response
+  },
   async (error) => {
-    const url = error.config?.url || 'unknown'
-    console.error('API Error:', url, error.response?.status, error.response?.data)
+    const originalRequest = error.config
     
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout()
+    if (originalRequest._retry) {
+      return Promise.reject(error)
+    }
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/refresh') &&
+      !originalRequest.url?.includes('/auth/login') &&
+      !originalRequest.url?.includes('/auth/register') &&
+      !originalRequest.url?.includes('/auth/check')
+    ) {
+      console.log('401 Unauthorized, attempting to refresh token...')
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            return api(originalRequest)
+          })
+          .catch((err) => Promise.reject(err))
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const { token } = useAuthStore.getState()
+        
+        if (!token) {
+          console.log('No token available, redirecting to login...')
+          throw new Error('No token available')
+        }
+
+        const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        
+        const { token: newToken } = response.data
+        
+        if (!newToken) {
+          throw new Error('No new token received')
+        }
+
+        const { setToken } = useAuthStore.getState()
+        setToken(newToken)
+        
+        processQueue(null, newToken)
+        
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return api(originalRequest)
+        
+      } catch (refreshError) {
+        console.error('Refresh token failed:', refreshError)
+        
+        processQueue(refreshError, null)
+        
+        const { logout } = useAuthStore.getState()
+        await logout()
+        
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
+        
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
+    if (error.response?.status === 401 && originalRequest.url?.includes('/auth/refresh')) {
+      console.error('Refresh endpoint returned 401, logging out...')
+      const { logout } = useAuthStore.getState()
+      await logout()
       if (typeof window !== 'undefined') {
         window.location.href = '/login'
       }
     }
-    
+
     return Promise.reject(error)
   }
 )
