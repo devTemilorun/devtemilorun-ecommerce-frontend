@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Modern Store Ecommerce Frontend — Next.js + Tailwind + React
 
-## Getting Started
+An opinionated, production-ready frontend for an e-commerce platform built with Next.js (App Router), TypeScript, Tailwind CSS, and a set of handy UI components and utilities.
 
-First, run the development server:
+**Tech stack:** Next.js, React, TypeScript, Tailwind CSS, Zustand, React Query, Radix UI, Nivo charts, and other modern libraries.
+
+**Key features**
+- Storefront pages: shop, product details, cart, checkout, contact.
+- Customer flows: register, login, email verification, passwordless flows.
+- Admin dashboard: product management, orders, customers, analytics, coupons.
+- Components: product grid, product card, cart summary, image upload, forms, and charts.
+
+Getting started
+
+Prerequisites
+- Node.js 18+ and npm/yarn/pnpm installed.
+
+Install dependencies
+
+```bash
+npm install
+# or pnpm install
+# or yarn
+```
+
+Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Available scripts (from package.json)
+- `dev` — Start Next.js dev server
+- `build` — Build for production
+- `start` — Start production server
+- `lint` — Run ESLint
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Project structure (high level)
+- app/ — Next.js App Router pages and route groups (storefront, dashboard, admin, auth)
+- components/ — Reusable UI and feature components (storefront, admin, layout)
+- hooks/ — Custom React hooks
+- lib/ — Utilities (axios instance, image parsing, helpers)
+- services/ — API service wrappers for products, orders, admin
+- store/ — Zustand stores (auth, cart)
+- styles/ — Global styles and Tailwind configuration
+- types/ — TypeScript types for products and orders
 
-## Learn More
+Environment
 
-To learn more about Next.js, take a look at the following resources:
+Create a `.env.local` at the project root for local development. Common variables used by the app may include:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `NEXT_PUBLIC_API_URL` — Base URL of the backend API
+- `NEXT_PUBLIC_PAYSTACK_KEY` — Payment provider public key (if using Paystack)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Testing & linting
 
-## Deploy on Vercel
+- Lint: `npm run lint`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This app is optimized for deployment on Vercel, but it can be hosted on any Node-compatible platform. Typical steps:
+
+1. Set environment variables in your hosting provider.
+2. Install dependencies and run `npm run build`.
+3. Start the server with `npm start` (or use serverless/static hosting on Vercel).
+
+Contributing
+
+PRs welcome. For changes to UI or components, follow existing patterns and keep changes focused and small.
+
+Notes & further improvements
+- Add automated tests (Jest/Testing Library) for critical flows.
+- Add CI (GitHub Actions) for build, lint and tests.
+
+
