@@ -7,6 +7,7 @@ import {
   ArrowUpRight, ArrowDownRight, TrendingUp,
   Clock, RefreshCw,
 } from 'lucide-react'
+import Link from 'next/link'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
@@ -143,7 +144,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [lastRefresh, setLastRefresh] = useState(new Date())
 
-  const load = async () => {
+  async function load() {
     setLoading(true)
     try {
       const d = await adminService.getDashboardStats()
@@ -383,10 +384,10 @@ export default function AdminDashboard() {
             <h2 className="text-sm font-semibold text-foreground">Recent Orders</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Latest 8 orders</p>
           </div>
-          <a href="/admin/orders"
+          <Link href="/admin/orders"
             className="text-xs font-medium text-violet-600 dark:text-violet-400 hover:underline">
             View all →
-          </a>
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

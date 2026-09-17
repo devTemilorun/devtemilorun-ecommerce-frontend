@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-// @ts-ignore: side-effect import for global CSS
 import "../styles/globals.css";
-// @ts-ignore: side-effect import for global CSS
 import "nprogress/nprogress.css"
 import { Inter, Calistoga } from 'next/font/google'
 import { Providers } from '@/app/providers'

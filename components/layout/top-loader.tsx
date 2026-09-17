@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-// @ts-ignore: side-effect import for global CSS
 import NProgress from 'nprogress'
 
 export function TopLoader() {

@@ -74,8 +74,14 @@ export function CheckoutForm({ onSuccess }: CheckoutFormProps) {
       }
       
       const response = await orderService.createOrder(orderData)
-      onSuccess(response.client_secret)
-      
+      const clientSecret = response.client_secret ?? response.payment?.client_secret
+
+      if (!clientSecret) {
+        throw new Error('Payment configuration is missing for this order.')
+      }
+
+      onSuccess(clientSecret)
+
       toast({
         title: 'Order created',
         description: 'Proceed with payment to complete your order.',

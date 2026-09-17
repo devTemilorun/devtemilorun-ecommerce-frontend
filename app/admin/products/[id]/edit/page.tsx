@@ -33,10 +33,6 @@ export default function EditProductPage() {
     is_featured: false,
   })
 
-  useEffect(() => {
-    fetchProduct()
-  }, [])
-
   const fetchProduct = async () => {
     try {
       const product = await adminService.getProduct(parseInt(params.id as string))
@@ -64,6 +60,10 @@ export default function EditProductPage() {
       setFetching(false)
     }
   }
+
+  useEffect(() => {
+    fetchProduct()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({

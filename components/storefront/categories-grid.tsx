@@ -24,25 +24,9 @@ export function CategoriesGrid() {
       try {
         setLoading(true)
         setError(null)
-        
-        // Fetch categories with product counts
+
         const response = await productService.getCategoriesWithCounts()
-        
-        // If response is an array, use it directly
-        if (Array.isArray(response)) {
-          setCategories(response)
-        } 
-        // If response has data property (Laravel pagination format)
-        else if (response?.data && Array.isArray(response.data)) {
-          setCategories(response.data)
-        }
-        // If response has categories property
-        else if (response?.categories && Array.isArray(response.categories)) {
-          setCategories(response.categories)
-        }
-        else {
-          setCategories([])
-        }
+        setCategories(Array.isArray(response) ? response : [])
       } catch (err) {
         console.error('Failed to fetch categories:', err)
         setError('Failed to load categories')

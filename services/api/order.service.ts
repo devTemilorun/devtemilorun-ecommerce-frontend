@@ -21,6 +21,10 @@ export interface CreateOrderData {
 export interface CreateOrderResponse {
   success: boolean
   order: Order
+  client_secret?: string
+  payment?: {
+    client_secret?: string
+  }
 }
 
 class OrderService {

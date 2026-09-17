@@ -30,9 +30,7 @@ export default function AdminCustomersPage() {
     return () => clearTimeout(t)
   }, [search])
 
-  useEffect(() => { fetchCustomers() }, [page, debounced])
-
-  const fetchCustomers = async () => {
+  async function fetchCustomers() {
     setLoading(true)
     try {
       const data = await adminService.getCustomers(page, debounced)
@@ -41,6 +39,8 @@ export default function AdminCustomersPage() {
       setTotal(data.total || 0)
     } finally { setLoading(false) }
   }
+
+  useEffect(() => { fetchCustomers() }, [page, debounced])
 
   const handleRoleChange = async (id: number, role: string, name: string) => {
     setUpdatingId(id)

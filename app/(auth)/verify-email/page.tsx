@@ -24,24 +24,6 @@ function VerifyEmailContent() {
   const [isResending, setIsResending] = useState(false)
   const [resendEmail, setResendEmail] = useState(email || '')
 
-  useEffect(() => {
-    console.log('🔍 URL params:', { email, token, tokenLength: token?.length })
-
-    if (token && token.length > 0 && email && email.length > 0) {
-      verifyEmail()
-    } else if (email && (!token || token.length === 0)) {
-      console.log('Email only — showing check inbox message')
-      setStatus('pending')
-      setMessage(`We sent a verification link to ${email}. Click the link in your email to verify your account.`)
-    } else if (!email && token) {
-      setStatus('error')
-      setMessage('Invalid verification link. Email is missing.')
-    } else {
-      setStatus('error')
-      setMessage('No verification link provided. Please request a new one.')
-    }
-  }, [token, email])
-
   const verifyEmail = async () => {
     try {
       console.log('🔍 Sending verification request:', { email, token })
@@ -92,6 +74,24 @@ function VerifyEmailContent() {
       })
     }
   }
+
+  useEffect(() => {
+    console.log('🔍 URL params:', { email, token, tokenLength: token?.length })
+
+    if (token && token.length > 0 && email && email.length > 0) {
+      verifyEmail()
+    } else if (email && (!token || token.length === 0)) {
+      console.log('Email only — showing check inbox message')
+      setStatus('pending')
+      setMessage(`We sent a verification link to ${email}. Click the link in your email to verify your account.`)
+    } else if (!email && token) {
+      setStatus('error')
+      setMessage('Invalid verification link. Email is missing.')
+    } else {
+      setStatus('error')
+      setMessage('No verification link provided. Please request a new one.')
+    }
+  }, [token, email])
 
   const handleResendVerification = async () => {
     if (!resendEmail) {

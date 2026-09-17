@@ -46,8 +46,6 @@ export default function AdminProductsPage() {
     return () => clearTimeout(t)
   }, [search])
 
-  useEffect(() => { fetchProducts() }, [page, debouncedSearch])
-
   const fetchProducts = async () => {
     setLoading(true)
     try {
@@ -58,6 +56,8 @@ export default function AdminProductsPage() {
     }
     finally { setLoading(false) }
   }
+
+  useEffect(() => { fetchProducts() }, [page, debouncedSearch])
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return

@@ -24,11 +24,7 @@ export default function MessageDetailPage() {
   const [replyMessage, setReplyMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
 
-  useEffect(() => {
-    fetchMessage()
-  }, [params.id])
-
-  const fetchMessage = async () => {
+  async function fetchMessage() {
     try {
       const response = await api.get(`/admin/contact/messages/${params.id}`)
       setMessage(response.data.data)
@@ -43,6 +39,10 @@ export default function MessageDetailPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchMessage()
+  }, [params.id])
 
   const handleMarkAsRead = async () => {
     try {

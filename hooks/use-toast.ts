@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { toast as sonnerToast } from 'sonner'
 
 export function useToast() {
@@ -10,13 +11,13 @@ export function useToast() {
       variant = 'default',
     }: {
       title: string
-      description: any
+      description?: ReactNode
       variant?: 'default' | 'destructive'
     }) => {
       if (variant === 'destructive') {
-        sonnerToast.error(title, { description })
+        sonnerToast.error(title, description ? { description } : undefined)
       } else {
-        sonnerToast.success(title, { description })
+        sonnerToast.success(title, description ? { description } : undefined)
       }
     },
   }

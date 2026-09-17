@@ -89,11 +89,7 @@ export default function AdminOrderDetailPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
 
-  useEffect(() => { 
-    fetchOrder() 
-  }, [id])
-
-  const fetchOrder = async () => {
+  async function fetchOrder() {
     setLoading(true)
     try {
       const data = await adminService.getOrder(Number(id))
@@ -106,6 +102,10 @@ export default function AdminOrderDetailPage() {
       setLoading(false) 
     }
   }
+
+  useEffect(() => { 
+    fetchOrder() 
+  }, [id])
 
   const handleStatusUpdate = async (newStatus: string) => {
     setUpdating(true)

@@ -44,9 +44,7 @@ export default function AdminOrdersPage() {
   const [updatingId, setUpdatingId]   = useState<number | null>(null)
   const { toast } = useToast()
 
-  useEffect(() => { fetchOrders() }, [page, statusFilter])
-
-  const fetchOrders = async () => {
+  async function fetchOrders() {
     setLoading(true)
     try {
       const data = await adminService.getOrders(page, statusFilter)
@@ -55,6 +53,8 @@ export default function AdminOrdersPage() {
       setTotal(data.total || 0)
     } finally { setLoading(false) }
   }
+
+  useEffect(() => { fetchOrders() }, [page, statusFilter])
 
   const handleStatusUpdate = async (id: number, status: string) => {
     setUpdatingId(id)

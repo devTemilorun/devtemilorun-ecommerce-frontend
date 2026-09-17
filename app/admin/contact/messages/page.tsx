@@ -19,11 +19,7 @@ export default function AdminMessagesPage() {
   const [totalPages, setTotalPages] = useState(1)
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchMessages()
-  }, [page, search])
-
-  const fetchMessages = async () => {
+  async function fetchMessages() {
     try {
       const response = await api.get(`/admin/contact/messages?page=${page}&search=${search}`)
       setMessages(response.data.data.data)
@@ -34,6 +30,10 @@ export default function AdminMessagesPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchMessages()
+  }, [page, search])
 
   const deleteMessage = async (id: number) => {
     if (confirm('Are you sure you want to delete this message?')) {
